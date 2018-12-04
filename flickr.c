@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 	apply_method(&userGraph, &communities);
 	clock_t end = clock();
 	double time_spent = (double) (end-start) / CLOCKS_PER_SEC;
-	printf("Time spent: %.2f seconds\n", time_spent);
+	printf("Time spent for Louvain method: %.2f seconds\n", time_spent);
 	print_vector(&communities, "communities.test");
 
 	// igraph_vector_t unique_communities;
@@ -43,6 +43,7 @@ int main(int argc, char* argv[])
 
 	// // Destroy created structures to release memory.
 	// igraph_vector_destroy(&unique_communities);
+
 	igraph_vector_destroy(&communities);
 	igraph_destroy(&userGraph);
 

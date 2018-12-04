@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <stdlib.h>
 
 
 /**
@@ -232,7 +233,7 @@ void second_phase(igraph_t* graph, igraph_vector_t* clusters) {
 
     while (!IGRAPH_EIT_END(edge_iterator)) {
         igraph_integer_t edge_id = IGRAPH_EIT_GET(edge_iterator);
-        igraph_integer_t edge_weight = EAN(graph, "weight", edge_id);
+        igraph_integer_t edge_weight = EAN(&new_graph, "weight", edge_id);
         
         if (edge_weight == 0) {
             igraph_vector_push_back(&deleted_edges, edge_id);
@@ -241,23 +242,28 @@ void second_phase(igraph_t* graph, igraph_vector_t* clusters) {
         IGRAPH_EIT_NEXT(edge_iterator);
     }
 
+    // Destroy the edge selector and iterator.
+    igraph_es_destroy(&edge_selector);
+    igraph_eit_destroy(&edge_iterator);
+
     igraph_es_vector(&edge_selector, &deleted_edges);
     igraph_delete_edges(&new_graph, edge_selector);
 
     // printf("The number of edges in new graph: %d\n", igraph_ecount(&new_graph));
     // printf("The weight of the first edge is: %.2f\n", EAN(&new_graph, "weight", 0));
-    // // Test if the total weights changed after the above process.
+    // Test if the total weights changed after the above process.
     // igraph_vector_t new_edge_weights;
     // igraph_vector_init(&new_edge_weights, 0);
-	// igraph_real_t cur_Q;
+	// // igraph_real_t cur_Q;
     // EANV(&new_graph, "weight", &new_edge_weights);
-    // printf("The total weights of the new graph is: %.2f\n", igraph_vector_sum(&new_edge_weights)); 
+    // if (igraph_vector_contains(&new_edge_weights, 0)) {
+    //     printf("Bad things happened...\n");
+    // }
+    // // printf("The total weights of the new graph is: %.2f\n", igraph_vector_sum(&new_edge_weights)); 
     // igraph_vector_destroy(&new_edge_weights);
 
 
     // Destroy the created stuff to release memory.
-    igraph_es_destroy(&edge_selector);
-    igraph_eit_destroy(&edge_iterator);
     igraph_vector_destroy(&deleted_edges);
 
     // Copy the new graph to the original one.
@@ -274,8 +280,29 @@ void apply_method(igraph_t* graph, igraph_vector_t* clusters) {
     igraph_vector_init(clusters, 0);
     igraph_vector_t cur_clusters;
     igraph_real_t best_modularity = 0;
+	int loop_count = 0;
+	
+	igraph_bool_t write_to_file = 1; 		// option to save the graph to local file
     while (1) {
-		// Intialization, every node itself is a cluster.
+		if (write_to_file) {
+			// Write current graph to a file in GraphML format.
+			char str_count[6];
+			sprintf(str_count, "%d", loop_count);
+			char out_file_name[30];
+			strcpy(out_file_name, "graph_");
+			strcat(out_file_name, str_count); strcat(out_file_name, ".graphml");
+			FILE* out_file = fopen(out_file_name, "w");
+			if (out_file == NULL) {
+				fprintf(stderr, "Cannot open file to write the graph!\n");
+				return;
+			}
+			igraph_write_graph_graphml(graph, out_file, /*prefixattr=*/ 1);
+			fclose(out_file);
+		}
+
+		loop_count++; 		// increment the loop count
+
+		// Intialization, every node itself is a cluster at first beginning.
         igraph_vector_init_seq(&cur_clusters, 0, igraph_vcount(graph)-1);
 
 		// Run the first phase.
