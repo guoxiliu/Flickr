@@ -29,23 +29,49 @@ int main(int argc, char* argv[])
 	// Create a vector to store community partition.
 	igraph_vector_t communities;
 
-	// Compute the run time.
+
+	/*
+	// Compute the run time of Louvain method.
 	clock_t start = clock();
 	apply_method(&userGraph, &communities);
 	clock_t end = clock();
 	double time_spent = (double) (end-start) / CLOCKS_PER_SEC;
 	printf("Time spent for Louvain method: %.2f seconds\n", time_spent);
+	print_vector(&communities, "mycommunities.test");
+	*/
+
+
+	
+	igraph_matrix_t merges;
+	igraph_vector_t modularity, weights;
+
+	igraph_matrix_init(&merges, 0, 0);
+	igraph_vector_init(&weights, 0);
+	igraph_vector_init(&communities, 0);
+	igraph_vector_init(&modularity, 0);
+
+	clock_t start = clock();
+	// igraph_community_fastgreedy(&userGraph, 0, &merges, &modularity, &communities);
+	igraph_community_multilevel(&userGraph, NULL, &communities, NULL, &modularity);
+	clock_t end = clock();
+	double time_spent = (double) (end-start) / CLOCKS_PER_SEC;
+	printf("Time spent for multilevel method: %.2f seconds\n", time_spent);
 	print_vector(&communities, "communities.test");
 
-	// igraph_vector_t unique_communities;
-	// get_unique_vector(&communities, &unique_communities);
+	igraph_matrix_destroy(&merges);
+	igraph_vector_destroy(&weights);
+	igraph_vector_destroy(&modularity);
+
+	igraph_vector_t unique_communities;
+	get_unique_vector(&communities, &unique_communities);
 	// print_vector(&unique_communities, "unique_communities.test");
+	printf("There are %ld different clusters.\n", igraph_vector_size(&unique_communities));
 
-	// // Destroy created structures to release memory.
-	// igraph_vector_destroy(&unique_communities);
-
+	// Destroy created structures to release memory.
+	igraph_vector_destroy(&unique_communities);
 	igraph_vector_destroy(&communities);
 	igraph_destroy(&userGraph);
+
 
 	return 0;
 }

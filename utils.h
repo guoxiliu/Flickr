@@ -1,12 +1,23 @@
+#ifndef UTILS_HEADER_FILE
+#define UTILS_HEADER_FILE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <igraph.h>
 
+void print_vector(igraph_vector_t* v, char* filename); 
+void add_nodes_from_csv(igraph_t* graph, const char* filename); 
+void add_edges_from_csv(igraph_t* graph, const char* filename); 
+void get_unique_vector(igraph_vector_t* given_vector, igraph_vector_t* unique_vector); 
+
+#endif
+
+
 /**
  * Print an igraph vector to a given file. 
  */ 
-void print_vector(igraph_vector_t* v, char* filename) {
+void print_vector(igraph_vector_t* vec, char* filename) {
     FILE *outFile = fopen(filename, "w");
     if (outFile == NULL) {
         fprintf(stderr, "Open the output file error!");
@@ -15,8 +26,8 @@ void print_vector(igraph_vector_t* v, char* filename) {
 
     // Print the vector to the file.
     long int i;
-    for (i = 0; i < igraph_vector_size(v); i++) {
-        fprintf(outFile, "%li\n", (long int) VECTOR(*v)[i]);
+    for (i = 0; i < igraph_vector_size(vec); i++) {
+        fprintf(outFile, "%li\n", (long int) VECTOR(*vec)[i]);
     }
     fprintf(outFile, "\n");
     fclose(outFile);
