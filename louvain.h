@@ -4,11 +4,6 @@
 #include "utils.h"
 #include <stdlib.h>
 
-void first_phase(igraph_t* graph, igraph_vector_t* clusters, int max_iter); 
-void second_phase(igraph_t* graph, igraph_vector_t* clusters);
-void apply_method(igraph_t* graph, igraph_vector_t* clusters);
-
-#endif
 
 /**
  * First phase of Louvain clustering algorithm.
@@ -314,25 +309,7 @@ void apply_method(igraph_t* graph, igraph_vector_t* clusters) {
 	igraph_bool_t write_to_file = 1; 		// option to save the graph to local file
 
     while (1) {
-		if (write_to_file) {
-			// Write current graph to a file in GraphML format.
-			char str_count[6];
-			sprintf(str_count, "%d", loop_count);
-			char out_file_name[30];
-			strcpy(out_file_name, "graph_");
-			strcat(out_file_name, str_count); strcat(out_file_name, ".graphml");
-			FILE* out_file = fopen(out_file_name, "w");
-			if (out_file == NULL) {
-				fprintf(stderr, "Cannot open file to write the graph!\n");
-				return;
-			}
-			igraph_write_graph_graphml(&tmp_graph, out_file, /*prefixattr=*/ 1);
-			fclose(out_file);
-		}
-
-		loop_count++; 		// increment the loop count
-
-		// Intialization, every node itself is a cluster at first beginning.
+        // Intialization, every node itself is a cluster at first beginning.
         igraph_vector_init_seq(&cur_clusters, 0, igraph_vcount(&tmp_graph)-1);
 
 		// Run the first phase.
@@ -345,10 +322,29 @@ void apply_method(igraph_t* graph, igraph_vector_t* clusters) {
 			VECTOR(*clusters)[i] = new_cluster_id;
 		}
 
+        if (write_to_file) {
+			// Write current graph to a file in GraphML format.
+			char str_count[6];
+			sprintf(str_count, "%d", loop_count);
+			char out_file_name[30];
+			strcpy(out_file_name, "graph_");
+			strcat(out_file_name, str_count); strcat(out_file_name, ".graphml");
+			FILE* out_file = fopen(out_file_name, "w");
+			if (out_file == NULL) {
+				fprintf(stderr, "Cannot open file to write the graph!\n");
+				return;
+			}
+
+            SETVANV(&tmp_graph, "group", &cur_clusters); 		// add attributes for all nodes
+			igraph_write_graph_graphml(&tmp_graph, out_file, /*prefixattr=*/ 1);
+			fclose(out_file);
+		}
+		loop_count++; 						// increment the loop count
+
 		// Compute the current modularity.
         igraph_real_t cur_modularity;
 		igraph_modularity(graph, clusters, &cur_modularity, NULL);
-		printf("Current modularity: %f\n", cur_modularity);
+		// printf("Current modularity: %f\n", cur_modularity);
 
 		// Break the while-loop.
         if(cur_modularity == best_modularity)
@@ -366,3 +362,4 @@ void apply_method(igraph_t* graph, igraph_vector_t* clusters) {
     }
 }
 
+#endif

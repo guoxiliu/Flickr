@@ -6,13 +6,6 @@
 #include <string.h>
 #include <igraph.h>
 
-void print_vector(igraph_vector_t* v, char* filename); 
-void add_nodes_from_csv(igraph_t* graph, const char* filename); 
-void add_edges_from_csv(igraph_t* graph, const char* filename); 
-void get_unique_vector(igraph_vector_t* given_vector, igraph_vector_t* unique_vector); 
-
-#endif
-
 
 /**
  * Print an igraph vector to a given file. 
@@ -29,7 +22,6 @@ void print_vector(igraph_vector_t* vec, char* filename) {
     for (i = 0; i < igraph_vector_size(vec); i++) {
         fprintf(outFile, "%li\n", (long int) VECTOR(*vec)[i]);
     }
-    fprintf(outFile, "\n");
     fclose(outFile);
 }
 
@@ -108,3 +100,22 @@ void get_unique_vector(igraph_vector_t* given_vector, igraph_vector_t* unique_ve
         }
     }
 }
+
+
+/**
+ * Get the number of same elements between two vectors.
+ * This function assumes that there is no duplicates in given two vectors.
+ * TODO: extend this function by calling get_unique_vector() first.
+ */
+int count_same_elements(const igraph_vector_t* vec1, const igraph_vector_t* vec2) {
+	int count = 0, size = igraph_vector_size(vec1);	
+
+	for (int i = 0; i < size; i++) {
+		if (igraph_vector_contains(vec2, VECTOR(*vec1)[i])) {
+			count++;
+		}
+	}
+	return count;
+}
+
+#endif
