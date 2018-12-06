@@ -3,7 +3,7 @@ CFLAGS = -Wall -g
 
 # project name and header files
 PROJECT = flickr
-HEADERS = utils.h louvain.h suggestion.h
+HEADERS = utils.h louvain.h label_propagation.h suggestion.h
 
 # path relevant with igraph
 IGRAPH_INCLUDE_PATH = /home/guoxil/usr/local/include/igraph

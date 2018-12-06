@@ -293,7 +293,7 @@ void second_phase(igraph_t* graph, igraph_vector_t* clusters) {
 /**
  * Apply the Louvain method.
  */
-void apply_method(igraph_t* graph, igraph_vector_t* clusters) {
+void fast_unfolding(igraph_t* graph, igraph_vector_t* clusters) {
 	// Make a copy of the original graph.
 	igraph_t tmp_graph;
 	igraph_empty(&tmp_graph, /*n=*/ 0, IGRAPH_UNDIRECTED);

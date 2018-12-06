@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "louvain.h"
 #include "suggestion.h"
+#include "label_propagation.h"
 #include <time.h>
 
 /**
@@ -28,47 +29,56 @@ int main(int argc, char* argv[])
 	add_edges_from_csv(&userGraph, edge_file_name);
 	printf("The number of edges in the graph is: %d.\n", igraph_ecount(&userGraph));
 
+
 	// Create a vector to store community partition.
 	igraph_vector_t communities;
 
-	// Compute the run time of Louvain method.
+
+	
+	// The code below test my own implementations.
 	clock_t start = clock();
-	apply_method(&userGraph, &communities);
+	// label_propagation(&userGraph, &communities, 100);
+	fast_unfolding(&userGraph, &communities);
 	clock_t end = clock();
 	double time_spent = (double) (end-start) / CLOCKS_PER_SEC;
 	printf("Time spent for Louvain method: %.2f seconds.\n", time_spent);
 	print_vector(&communities, "mycommunities.test");
 	
 	// Compute the modularity after clustering.
-	// igraph_real_t modularity;
-	// igraph_modularity(&userGraph, &communities, &modularity, NULL);
-	// printf("The modularity is %.f\n", modularity);
+	igraph_real_t modularity;
+	igraph_modularity(&userGraph, &communities, &modularity, NULL);
+	printf("The modularity is %f.\n", modularity);
+	
 
-
+	
 	/* 
 	// The code below tests the APIs provided by igraph.
 	igraph_real_t modularity;
 	igraph_matrix_t merges;
 	igraph_vector_t modularities;
+	igraph_rng_seed(igraph_rng_default(), SEED);
 
 	igraph_matrix_init(&merges, 0, 0);
 	igraph_vector_init(&communities, 0);
 	igraph_vector_init(&modularities, 0);
 
 	clock_t start = clock();
-	igraph_community_fastgreedy(&userGraph, 0, &merges, &modularities, &communities);
-	print_vector(&communities, "greedy_communities.test");
+	// igraph_community_fastgreedy(&userGraph, 0, &merges, &modularities, &communities);
+	// print_vector(&communities, "greedy_communities.test");
 	// igraph_community_multilevel(&userGraph, NULL, &communities, NULL, &modularities);
 	// print_vector(&communities, "multilevel_communities.test");
+	igraph_community_label_propagation(&userGraph, &communities, NULL, NULL, NULL, &modularity);
+	print_vector(&communities, "lp_communities.test");
 	clock_t end = clock();
 	double time_spent = (double) (end-start) / CLOCKS_PER_SEC;
-	printf("Time spent for multilevel method: %.2f seconds.\n", time_spent);
+	printf("Time spent for current method: %.2f seconds.\n", time_spent);
 	igraph_modularity(&userGraph, &communities, &modularity, NULL);
+	// The result is 0.446709 and there are 84 clusters.
 	printf("The modularity is %f\n.", modularity);
 
 	igraph_matrix_destroy(&merges);
 	igraph_vector_destroy(&modularities);
-	*/
+	 */
 	
 
 	// Compute the unique communities.
