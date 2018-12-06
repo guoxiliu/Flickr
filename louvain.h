@@ -36,9 +36,6 @@ void first_phase(igraph_t* graph, igraph_vector_t* clusters, int max_iter) {
 
     // Test if the vector is as expected.
     // print_vector(&node_weights, "node_weights.test");
-
-    igraph_vit_destroy(&vertex_iterator);
-    igraph_vs_destroy(&vertex_selector);
     
 	// Loop the phase for a given maximum times.
     for (int count = 0; count < max_iter; count++) {
@@ -78,13 +75,15 @@ void first_phase(igraph_t* graph, igraph_vector_t* clusters, int max_iter) {
             igraph_vector_init(&weights_per_cluster, node_num);
 			igraph_vector_init(&visited_clusters, 0);
 
+            /* 
             // Compute the sum of the weights of the links from current node to each cluster (using vertex selector cannot get the weight of the adjacent edge)
-            // while (!IGRAPH_VIT_END(vertex_iterator)) {
-            //     adj_node_id = IGRAPH_VIT_GET(vertex_iterator);
-            //     adj_cluster_id = VECTOR(*clusters)[adj_node_id];
-			// 	VECTOR(weights_per_cluster)[adj_cluster_id] += 2;
-			// 	IGRAPH_VIT_NEXT(vertex_iterator);
-            // }
+            while (!IGRAPH_VIT_END(vertex_iterator)) {
+                adj_node_id = IGRAPH_VIT_GET(vertex_iterator);
+                adj_cluster_id = VECTOR(*clusters)[adj_node_id];
+				VECTOR(weights_per_cluster)[adj_cluster_id] += 2;
+				IGRAPH_VIT_NEXT(vertex_iterator);
+            }
+            */
 
             // Compute the sum of the weights of the links from current node to each cluster
             while (!IGRAPH_EIT_END(edge_iterator)) {
@@ -115,7 +114,7 @@ void first_phase(igraph_t* graph, igraph_vector_t* clusters, int max_iter) {
             // Remove the current node from the original cluster.
             VECTOR(cluster_tot)[old_cluster_id] -= node_weight;
 
-            IGRAPH_VIT_RESET(vertex_iterator);      // reset the vertex iterator
+            IGRAPH_VIT_RESET(vertex_iterator);          // reset the vertex iterator
             // Loop through all adjacent vertices.
             while (!IGRAPH_VIT_END(vertex_iterator)) {
                 adj_node_id = IGRAPH_VIT_GET(vertex_iterator);
@@ -144,24 +143,18 @@ void first_phase(igraph_t* graph, igraph_vector_t* clusters, int max_iter) {
                 update = 1;
             }
 
-            // Destroy created things to release memory.
-            igraph_vs_destroy(&vertex_selector);
-            igraph_vit_destroy(&vertex_iterator);
-            igraph_es_destroy(&edge_selector);
-            igraph_eit_destroy(&edge_iterator);
-			igraph_vector_destroy(&visited_clusters);
+            igraph_vector_destroy(&visited_clusters);
             igraph_vector_destroy(&weights_per_cluster);
-
         }
 
-        // Destroy created vector to release memory.
-        igraph_vector_destroy(&cluster_tot);
-		
+        
 		// See if there is any update.
         if (!update) {
             // printf("The loop time of the first phase: %d\n", count);
             break;
         }
+
+        igraph_vector_destroy(&cluster_tot);
     }
 	
 	// Relabel the clusters from 0.
@@ -177,7 +170,12 @@ void first_phase(igraph_t* graph, igraph_vector_t* clusters, int max_iter) {
             }
         }
     }
-    // Destroy created vector to release memory.
+    
+    // Destroy created things to release memory.
+    igraph_vs_destroy(&vertex_selector);
+    igraph_vit_destroy(&vertex_iterator);
+    igraph_es_destroy(&edge_selector);
+    igraph_eit_destroy(&edge_iterator);
 	igraph_vector_destroy(&unique_clusters);
     igraph_vector_destroy(&node_weights);
     igraph_vector_destroy(&edge_weights);
@@ -265,20 +263,21 @@ void second_phase(igraph_t* graph, igraph_vector_t* clusters) {
     igraph_es_vector(&edge_selector, &deleted_edges);
     igraph_delete_edges(&new_graph, edge_selector);
 
-    // printf("The number of edges in new graph: %d\n", igraph_ecount(&new_graph));
-    // printf("The weight of the first edge is: %.2f\n", EAN(&new_graph, "weight", 0));
+    /* 
+    // Test if above process works properly.
+    printf("The number of edges in new graph: %d\n", igraph_ecount(&new_graph));
+    printf("The weight of the first edge is: %.2f\n", EAN(&new_graph, "weight", 0));
 
-    // Test if the total weights changed after the above process.
-    // igraph_vector_t new_edge_weights;
-    // igraph_vector_init(&new_edge_weights, 0);
-	// // igraph_real_t cur_Q;
-    // EANV(&new_graph, "weight", &new_edge_weights);
-    // if (igraph_vector_contains(&new_edge_weights, 0)) {
-    //     printf("Bad things happened...\n");
-    // }
-    // // printf("The total weights of the new graph is: %.2f\n", igraph_vector_sum(&new_edge_weights)); 
-    // igraph_vector_destroy(&new_edge_weights);
-
+    igraph_vector_t new_edge_weights;
+    igraph_vector_init(&new_edge_weights, 0);
+	// igraph_real_t cur_Q;
+    EANV(&new_graph, "weight", &new_edge_weights);
+    if (igraph_vector_contains(&new_edge_weights, 0)) {
+        printf("Bad things happened...\n");
+    }
+    // printf("The total weights of the new graph is: %.2f\n", igraph_vector_sum(&new_edge_weights)); 
+    igraph_vector_destroy(&new_edge_weights);
+     */
 
     // Destroy the created stuff to release memory.
     igraph_vector_destroy(&deleted_edges);
